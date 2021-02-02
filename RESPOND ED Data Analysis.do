@@ -11,59 +11,94 @@ keep if ed_scn_dt~=.
 // Number screened
 count if ed_scn_dt~=.
 
-// Number eligible
-tab ed_scn_pt_eligibility_calc, m
-
 // Reasons for non-eligibility - inclusion criteria
-foreach i of numlist 1/5 {
-	capture noisily tab ed_scn_inc_cri_0`i', m
+gen inc_cri_met=1
+foreach v of varlist ed_scn_inc_cri_* {
+	capture noisily tab `v', m
+	replace inc_cri_met=0 if `v'==0
 }
+tab inc_cri_met, m
 
 // Reasons for non-eligibility - exclusion criteria
-foreach i of numlist 1/9 {
-	capture noisily tab ed_scn_exc_cri_0`i', m
+gen exc_cri_not_met=1
+foreach v of varlist ed_scn_exc_cri_* {
+	capture noisily tab `v', m
+	replace exc_cri_not_met=0 if `v'==1
 }
-foreach i of numlist 10/13 {
-	capture noisily tab ed_scn_exc_cri_`i', m
-}
+gen exc_cri_chronic=1 if ed_scn_exc_cri_03==1 | ed_scn_exc_cri_04==1 | ed_scn_exc_cri_05==1
+tab exc_cri_not_met, m
+tab exc_cri_chronic, m
+
+// Number eligible
+tab ed_scn_pt_eligibility_calc, m
 
 /* Keep only those eligible */
 keep if ed_scn_pt_eligibility_calc==1
 
-// Number consented
-tab ed_scn_rand_group, m
+// Not approached for consent (=0)
+tab ed_scn_consent_type, m
 
-// Consent rate
-tab ed_scn_consent_type if ed_scn_consent_type~=0, m
-
-/* Keep only those consented */
-keep if ed_scn_consent_type==1 | ed_scn_consent_type==2
-
-// Consent type
-tab ed_scn_consent_type
-
-// Reasons for consent to continue
-foreach i of numlist 1/5 {
-	capture noisily tab ed_scn_consent_ctc_reason___`i' if ed_scn_consent_type==2, m
+// Non-consent reason
+* Collapse non-consent reason into pre-defined categories
+gen not_enrol_declined=1 if ed_scn_non_consent_reason___1==1
+gen not_enrol_social=1 if ed_scn_non_consent_reason___5==1 | ed_scn_non_consent_reason___6==1 | ed_scn_non_consent_reason___7==1 
+gen not_enrol_notapproached=1 if ed_scn_non_consent_reason___4==1 | ed_scn_non_consent_reason___9==1 | ed_scn_non_consent_reason___18==1 | ed_scn_non_consent_reason___19==1 | ed_scn_non_consent_reason___20==1 | ed_scn_non_consent_reason___21==1
+gen not_enrol_resourcing=1 if ed_scn_non_consent_reason___2==1 | ed_scn_non_consent_reason___16==1 | ed_scn_non_consent_reason___22==1 | ed_scn_non_consent_reason___23==1 | ed_scn_non_consent_reason___25==1 | ed_scn_non_consent_reason___29==1 | ed_scn_non_consent_reason___30==1
+gen not_enrol_covid19=1 if ed_scn_non_consent_reason___26==1 | ed_scn_non_consent_reason___27==1 | ed_scn_non_consent_reason___28==1
+gen not_enrol_other=1 if ed_scn_non_consent_reason___0==1 | ed_scn_non_consent_reason___3==1 | ed_scn_non_consent_reason___10==1 | ed_scn_non_consent_reason___11==1 | ed_scn_non_consent_reason___12==1 | ed_scn_non_consent_reason___13==1 | ed_scn_non_consent_reason___14==1 | ed_scn_non_consent_reason___15==1 | ed_scn_non_consent_reason___17==1 | ed_scn_non_consent_reason___24==1
+foreach v of varlist ed_scn_non_consent_reason* {
+	tab `v', m
 }
-tab ed_scn_consent_ctc_other
-
-// Written consent obtained
-tab ed_scn_consent_yn ed_scn_consent_type, m col
-
-// Informed consent declined
-tab ed_scn_declined_yn, m
+foreach v of varlist not_enrol_* {
+	tab `v', m
+}
 
 // Patient missed
 tab ed_scn_missed_yn, m
 
-// Withdrawn
+// Approached for prospective consent (=1)
+tab ed_scn_consent_type, m
+
+// N declined consent
+tab ed_scn_declined_yn if ed_scn_consent_type==1, m
+
+// Eligible for consent-to-continue (=2)
+tab ed_scn_consent_type, m
+
+// Number randomised
+tab ed_scn_rand_yn, m
+
+/* Keep only those randomised */
+keep if ed_scn_rand_yn==1
+
+// Randomisation group
+tab ed_scn_rand_group, m
+
+// Consent type in each group
+tab ed_scn_consent_type ed_scn_rand_group, m
+
+// Number consented
+bysort ed_scn_rand_group: tab ed_scn_consent_yn ed_scn_consent_type, m
+
+// Informed consent declined
+tab ed_scn_declined_yn, m
+
+// Number of withdrawals
 tab woc_yn, m
 tab woc_applies_to if woc_yn==1, m
+
+/* Keep only those consented */
+keep if ed_scn_consent_yn==1
+
+// Consent type
+tab ed_scn_consent_type
 
 // Keep only those randomised, consented and not withdrawn
 keep if ~missing(ed_scn_rand_group) & ed_scn_consent_yn==1
 drop if woc_applies_to==1
+
+// Follow-up to 28 days
+tab out_28d_status ed_scn_rand_group, m
 
 // Time from implementation of consent-to-continue to finalisation of informed consent for consent-to-continue patients
 hist t_diff_icu_ctc_writen_hr_ed
@@ -336,8 +371,12 @@ keep record_id ed_scn_rand_group ///
 			   ed_bl_lactate ed_obs_lactate* ///
 			   ed_bl_gcs ed_obs_gcs1 ed_obs_gcs2 ed_obs_gcs3 ed_obs_gcs4 ed_obs_gcs5 ///
 			   ed_obs_gcs6 ed_obs_gcs7 ed_obs_gcs8 ed_obs_gcs9 ed_obs_gcs_yn10 ///
-			   ed_obs_gcs11 ed_obs_gcs12 ed_obs_gcs13 ed_obs_gcs14 ed_obs_gcs15
+			   ed_obs_gcs11 ed_obs_gcs12 ed_obs_gcs13 ed_obs_gcs14 ed_obs_gcs15 ///
+			   ed_obs_fluid_bolus_total*_kg
 			   
+foreach i of numlist 1/15 {
+	rename ed_obs_fluid_bolus_total`i'_kg ed_obs_fluid_bolus_total_kg`i'
+}			   
 rename ed_bl_hr ed_obs_hr0
 rename ed_bl_rr ed_obs_rr0
 rename ed_bl_sbp ed_obs_sbp0
@@ -345,7 +384,7 @@ rename ed_bl_dbp ed_obs_dbp0
 rename ed_bl_lactate ed_obs_lactate0
 rename ed_bl_gcs ed_obs_gcs0
 reshape long ed_obs_hr ed_obs_rr ed_obs_sbp ed_obs_dbp ed_obs_vis_score ///
-			 ed_obs_lactate ed_obs_gcs, i(record_id) j(timepoint)
+			 ed_obs_lactate ed_obs_gcs ed_obs_fluid_bolus_total_kg, i(record_id) j(timepoint)
 gen ed_obs_map=(ed_obs_sbp+2*ed_obs_dbp)/3
 gen ed_obs_pp=ed_obs_sbp-ed_obs_dbp
 gen ed_obs_shock=ed_obs_hr/ed_obs_sbp
@@ -493,6 +532,28 @@ ciplot ed_obs_gcs if ed_obs_gcs<4444, by(timepoint) graphr(color(white)) plotr(l
 	  mfcolor(black) mlcolor(black) msymbol(D) msize(small) ///
 	  xlabel(,labsize(small) angle(vertical)) xtitle("Timepoint",margin(small)) ///
 	  ytitle("Glasgow Coma Score")
+	  
+// Fluid use
+graph box ed_obs_fluid_bolus_total_kg, over(ed_scn_rand_group, label(nolabel)) over(timepoint, label(labsize(small) angle(vertical))) ///
+	  graphr(color(white)) plotr(lcolor(black)) box(1,color(black)) box(2,color(red)) ///
+	  marker(1, msize(small) mfcolor(black) mlcolor(black)) ///
+	  ytitle("Amount of Fluid Received (ml/kg)") ylabel(, glpattern(dash) glcolor(gs14)) ///
+	  caption("Timepoint", position(6))
+	  
+graph box ed_obs_fluid_bolus_total_kg, over(timepoint, label(labsize(small) angle(vertical))) ///
+	  graphr(color(white)) plotr(lcolor(black)) box(1,color(black) ///
+	  fcolor(gs8)) marker(1, msize(small) mfcolor(black) mlcolor(black)) ///
+	  ytitle("Amount of Fluid Received (ml/kg)") ylabel(, glpattern(dash) glcolor(gs14)) ///
+	  caption("Timepoint", position(6))
+	
+twoway lfitci ed_obs_fluid_bolus_total_kg timepoint if ed_scn_rand_group==1 || ///
+	   lfitci ed_obs_fluid_bolus_total_kg timepoint if ed_scn_rand_group==2
+	
+ciplot ed_obs_fluid_bolus_total_kg, by(timepoint) graphr(color(white)) plotr(lcolor(black)) ///
+	  ylabel(, glpattern(dash) glcolor(gs14)) rcap(lcolor(black)) ///
+	  mfcolor(black) mlcolor(black) msymbol(D) msize(small) ///
+	  xlabel(,labsize(small) angle(vertical)) xtitle("Timepoint",margin(small)) ///
+	  ytitle("Amount of Fluid Received (ml/kg)")	  
 	  
 restore
 

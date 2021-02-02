@@ -8,51 +8,79 @@ keep if icu_scn_dt~=.
 // Number screened
 count if icu_scn_dt~=.
 
-// Number eligible
-tab icu_scn_pt_eligibility_calc, m
-
 // Reasons for non-eligibility - inclusion criteria
-foreach i of numlist 1/5 {
-	capture noisily tab icu_scn_inc_cri_0`i', m
+gen inc_cri_met=1
+foreach v of varlist icu_scn_inc_cri* {
+	capture noisily tab `v', m
+	replace inc_cri_met=0 if `v'==0
 }
+tab inc_cri_met, m
 
 // Reasons for non-eligibility - exclusion criteria
-foreach i of numlist 1/9 {
-	capture noisily tab icu_scn_exc_cri_0`i', m
+gen exc_cri_not_met=1
+foreach v of varlist icu_scn_exc_cri* {
+	capture noisily tab `v', m
+	replace exc_cri_not_met=0 if `v'==1
 }
-foreach i of numlist 10/18 {
-	capture noisily tab icu_scn_exc_cri_`i', m
-}
+gen exc_cri_chronic=1 if icu_scn_exc_cri_03==1 | icu_scn_exc_cri_04==1
+gen exc_cri_illness=1 if icu_scn_exc_cri_09==1 | icu_scn_exc_cri_10==1 | icu_scn_exc_cri_11==1 | icu_scn_exc_cri_12==1 | icu_scn_exc_cri_13==1 | icu_scn_exc_cri_14==1
+tab exc_cri_not_met, m
+tab exc_cri_chronic, m
+tab exc_cri_illness, m
+
+// Number eligible
+tab icu_scn_pt_eligibility_calc, m
 
 /* Keep only those eligible */
 keep if icu_scn_pt_eligibility_calc==1
 
-// Number consented
-tab icu_scn_rand_group, m
-
-// Consent rate
+// Not approached for consent (=0)
 tab icu_scn_consent_type, m
 
-/* Keep only those consented */
-keep if icu_scn_consent_type==1 | icu_scn_consent_type==2
-
-// Consent type
-tab icu_scn_consent_type
-
-// Reasons for consent to continue
-foreach i of numlist 1/5 {
-	capture noisily tab icu_scn_consent_ctc_reason___`i' if icu_scn_consent_type==2, m
+// Non-consent reason
+* Collapse non-consent reason into pre-defined categories
+gen not_enrol_declined=1 if icu_scn_non_consent_reason___1==1
+gen not_enrol_social=1 if icu_scn_non_consent_reason___5==1 | icu_scn_non_consent_reason___6==1 | icu_scn_non_consent_reason___7==1 
+gen not_enrol_notapproached=1 if icu_scn_non_consent_reason___4==1 | icu_scn_non_consent_reason___9==1 | icu_scn_non_consent_reason___18==1 | icu_scn_non_consent_reason___19==1 | icu_scn_non_consent_reason___20==1 | icu_scn_non_consent_reason___21==1
+gen not_enrol_resourcing=1 if icu_scn_non_consent_reason___2==1 | icu_scn_non_consent_reason___16==1 | icu_scn_non_consent_reason___22==1 | icu_scn_non_consent_reason___23==1 | icu_scn_non_consent_reason___25==1 | icu_scn_non_consent_reason___29==1 | icu_scn_non_consent_reason___30==1
+gen not_enrol_covid19=1 if icu_scn_non_consent_reason___26==1 | icu_scn_non_consent_reason___27==1 | icu_scn_non_consent_reason___28==1
+gen not_enrol_other=1 if icu_scn_non_consent_reason___0==1 | icu_scn_non_consent_reason___3==1 | icu_scn_non_consent_reason___10==1 | icu_scn_non_consent_reason___11==1 | icu_scn_non_consent_reason___12==1 | icu_scn_non_consent_reason___13==1 | icu_scn_non_consent_reason___14==1 | icu_scn_non_consent_reason___15==1 | icu_scn_non_consent_reason___17==1 | icu_scn_non_consent_reason___24==1
+foreach v of varlist icu_scn_non_consent_reason* {
+	tab `v', m
 }
-tab icu_scn_consent_ctc_other
-
-// Written consent obtained
-tab icu_scn_consent_yn icu_scn_consent_type, m col
-
-// Informed consent declined
-tab icu_scn_declined_yn, m
+foreach v of varlist not_enrol_* {
+	tab `v', m
+}
 
 // Patient missed
 tab icu_scn_missed_yn, m
+
+// Approached for prospective consent (=1)
+tab icu_scn_consent_type, m
+
+// N declined consent
+tab icu_scn_declined_yn if icu_scn_consent_type==1, m
+
+// Eligible for consent-to-continue (=2)
+tab icu_scn_consent_type, m
+
+// Number randomised
+tab icu_scn_rand_yn, m
+
+/* Keep only those randomised */
+keep if icu_scn_rand_yn==1
+
+// Randomisation group
+tab icu_scn_rand_group, m
+
+// Consent type in each group
+tab icu_scn_consent_type icu_scn_rand_group, m
+
+// Number consented
+bysort icu_scn_rand_group: tab icu_scn_consent_yn icu_scn_consent_type, m
+
+// Informed consent declined
+tab icu_scn_declined_yn, m
 
 // Withdrawn
 tab woc_yn, m
@@ -61,6 +89,9 @@ tab woc_applies_to if woc_yn==1, m
 // Keep only those randomised, consented and not withdrawn
 keep if ~missing(icu_scn_rand_group) & icu_scn_consent_yn==1
 drop if woc_applies_to==2 | woc_applies_to==3
+
+// Follow-up to 28 days
+tab out_28d_status icu_scn_rand_group, m
 
 // Time from implementation of consent-to-continue to finalisation of informed consent for consent-to-continue patients
 hist t_diff_icu_ctc_writen_hr_icu
@@ -348,10 +379,76 @@ foreach v of varlist _Iae_type* {
 
 restore
 
+/*** Sensivity Analysis: Table 3 - Outcomes - in three groups ***/
+
+// Survival free of organ dysfunction (censored at 28 days) - using pSOFA
+tabstat organ_dys_psofa_any_death, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+hist organ_dys_psofa_any_death
+stset organ_dys_psofa_any_death
+sts graph, by(icu_scn_rand_3gp)
+
+// Survival free of inotrope support at 7 days
+hist icu_inotropefree_day7_days
+tabstat icu_inotropefree_day7_days, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+
+// Survival free of multiorgan dysfunction at 7 days - using pSOFA
+tabstat mo_dys_psofa_any_death_7day, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+hist mo_dys_psofa_any_death_7day
+stset mo_dys_psofa_any_death_7day
+sts graph, by(icu_scn_rand_3gp)
+
+// Death at 28 days
+tab out_28d_status icu_scn_rand_3gp, m col
+tab out_28d_status icu_scn_rand_3gp, col
+
+// Survival free of PICU stay (censored at 28 days)
+hist picu_free_surv
+tabstat picu_free_surv, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+
+// PICU length of stay
+hist icu_los
+tabstat icu_los, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+
+// Hospital length of stay
+hist hosp_los_ed
+tabstat hosp_los_ed, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+capture noisily qreg hosp_los_ed icu_scn_rand_3gp
+
+// 28 day mPOPC
+tab out_28d_popc icu_scn_rand_3gp, m col
+tab out_28d_popc icu_scn_rand_3gp, col
+tabstat out_28d_popc, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+tab out_mpopc_change icu_scn_rand_3gp, m col
+tab out_mpopc_change icu_scn_rand_3gp, col
+tabstat out_mpopc_change, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+
+// FSS
+hist out_28d_fss_score
+tabstat out_28d_fss_score, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+hist out_fss_change
+tabstat out_fss_change, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+
+// Lactate <2mmol/L by six hours post enrolment
+tab icu_lactate2_first6 icu_scn_rand_3gp, m col
+tab icu_lactate2_first6 icu_scn_rand_3gp, col
+
+// Lactate <2mmol/L by 12 hours post enrolment
+tab icu_lactate2_first12 icu_scn_rand_3gp, m col
+tab icu_lactate2_first12 icu_scn_rand_3gp, col
+
+// Lactate <2mmol/L by 24 hours post enrolment
+tab icu_lactate2_first24 icu_scn_rand_3gp, m col
+tab icu_lactate2_first24 icu_scn_rand_3gp, col
+
+// Time to reversal of tachycardia censored at 24 hours
+hist icu_t_diff_normalhr_rand
+tabstat icu_t_diff_normalhr_rand, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+
+// Time to shock reversal censored at 28 days
+hist icu_t_diff_inoend_rand_min
+tabstat icu_t_diff_inoend_rand_min, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
 
 /* Figures */
-
-// Still need to include pSOFA
 
 preserve
 keep record_id icu_bl_hr icu_obs_hr1 icu_obs_hr2 icu_obs_hr3 icu_obs_hr4 ///
@@ -508,24 +605,3 @@ ciplot icu_obs_gcs if icu_obs_gcs<4444, by(timepoint) graphr(color(white)) plotr
 	  ytitle("Glasgow Coma Score")
 	  
 restore
-
-
-
-/*** DAILY ORGAN DYSFUNCTION SCORE ***/
-/*preserve
-keep dod_psofa_comb_* record_id icu_scn_rand_group
-reshape long dod_psofa_comb_, i(record_id) j(day)
-collapse (median) dod_psofa_comb_, by(day icu_scn_rand_group)
-twoway (line dod_psofa_comb_ day if icu_scn_rand_group==1) (line dod_psofa_comb_ day if icu_scn_rand_group==2), graphr(color(white)) plotr(lcolor(black)) legend(lab (1 "Standard") lab(2 "Intervention")) title("") ylabel(, grid glcolor(gs14) glpattern(dash)) xtitle("Days after randomisation") ytitle("Median pSOFA Score") xtick(0 7 14 21 28) xlabel(0 7 14 21 28)
-restore
-
-preserve
-keep organ_dys_psofa_* record_id icu_scn_rand_group
-reshape long organ_dys_psofa_, i(record_id) j(day)
-collapse (mean) organ_dys_psofa_, by(day icu_scn_rand_group)
-twoway (line organ_dys_psofa_ day if icu_scn_rand_group==1) (line organ_dys_psofa_ day if icu_scn_rand_group==2)
-graph bar (mean) organ_dys_psofa_, over(icu_scn_rand_group) over(day)
-graph bar (mean) organ_dys_psofa_ if day<=14, over(icu_scn_rand_group) over(day) graphr(color(white)) plotr(lcolor(black)) legend(lab (1 "Standard") lab(2 "Intervention")) title("") ylabel(, grid glcolor(gs14) glpattern(dash)) ytitle("% with Organ Dysfunction")
-*graph bar (mean) organ_dys_psofa_ if day<=14 & icu_scn_rand_group==1 || bar (mean) organ_dys_psofa_ if day<=14 & icu_scn_rand_group==2, over(day)
-restore
-*/
