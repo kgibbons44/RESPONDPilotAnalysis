@@ -52,8 +52,8 @@ tab redcap_event_name demographics_complete
 tab redcap_event_name demographics_complete, m
 tab redcap_event_name demographics_complete
 // Keep variables
-describe record_id redcap_event_name redcap_data_access_group dem_pgci_yn-sepsis_source_complete out_inv-withdrawal_of_consen_v_23, full
-keep record_id redcap_event_name redcap_data_access_group dem_pgci_yn-sepsis_source_complete out_inv-withdrawal_of_consen_v_23
+describe record_id redcap_event_name redcap_data_access_group dem_pgci_yn-sepsis_source_complete out_inv-withdrawal_of_consen_v_27, full
+keep record_id redcap_event_name redcap_data_access_group dem_pgci_yn-sepsis_source_complete out_inv-withdrawal_of_consen_v_27
 gen shared_indata=1
 sort record_id
 save "OutputData\shared0.dta", replace
@@ -64,10 +64,10 @@ keep if ( redcap_event_name == "shared_respond_for_arm_1" & redcap_repeat_instru
 keep if ( dod_dt~=. )
 tab redcap_repeat_instance if dod_dt~=., m
 // Keep variables
-describe record_id redcap_event_name redcap_repeat_instance dod_dt-daily_organ_dysfunct_v_22, full
-keep record_id redcap_event_name redcap_repeat_instance dod_dt-daily_organ_dysfunct_v_22
+describe record_id redcap_event_name redcap_repeat_instance dod_dt-daily_organ_dysfunct_v_26, full
+keep record_id redcap_event_name redcap_repeat_instance dod_dt-daily_organ_dysfunct_v_26
 // Reshape the data
-reshape wide dod_dt-daily_organ_dysfunct_v_22, i(record_id) j(redcap_repeat_instance)
+reshape wide dod_dt-daily_organ_dysfunct_v_26, i(record_id) j(redcap_repeat_instance)
 gen shared_dod_indata=1
 sort record_id
 save "OutputData\shared_dod0.dta", replace
@@ -80,8 +80,8 @@ keep if ( icu_scn_dt~=. )
 tab redcap_event_name icu_scn_pt_eligibility_calc, m
 tab redcap_event_name icu_scn_pt_eligibility_calc
 // Keep variables
-describe record_id redcap_event_name icu_scn_dt-respond_picu_study_t_v_20, full
-keep record_id redcap_event_name icu_scn_dt-respond_picu_study_t_v_20
+describe record_id redcap_event_name icu_scn_dt-respond_picu_study_t_v_24, full
+keep record_id redcap_event_name icu_scn_dt-respond_picu_study_t_v_24
 gen icu_scn_indata=1
 sort record_id
 save "OutputData\icu_scn0.dta", replace
@@ -93,10 +93,10 @@ keep if ( redcap_event_name == "respond_picu_arm_1" & redcap_repeat_instrument==
 keep if ( icu_obs_tp~=. )
 tab redcap_repeat_instance icu_obs_tp, m
 // Keep variables
-describe record_id redcap_event_name redcap_repeat_instance icu_obs_tp-respond_picu_first_2_v_21, full
-keep record_id redcap_event_name redcap_repeat_instance icu_obs_tp-respond_picu_first_2_v_21
+describe record_id redcap_event_name redcap_repeat_instance icu_obs_tp-respond_picu_first_2_v_25, full
+keep record_id redcap_event_name redcap_repeat_instance icu_obs_tp-respond_picu_first_2_v_25
 // Reshape the data
-reshape wide icu_obs_tp-respond_picu_first_2_v_21, i(record_id) j(redcap_repeat_instance)
+reshape wide icu_obs_tp-respond_picu_first_2_v_25, i(record_id) j(redcap_repeat_instance)
 gen icu_24h_indata=1
 sort record_id
 save "OutputData\icu_24h0.dta", replace
@@ -107,15 +107,15 @@ keep if ( redcap_event_name == "reporting_aes_arm_1" & redcap_repeat_instrument=
 keep if ( ae_yn~=. )
 tab redcap_event_name ae_yn, m
 // Keep variables
-describe record_id redcap_event_name ae_yn-adverse_events_manag_v_29, full
-keep record_id redcap_repeat_instance redcap_event_name ae_yn-adverse_events_manag_v_29
+describe record_id redcap_event_name ae_yn-adverse_events_manag_v_33, full
+keep record_id redcap_repeat_instance redcap_event_name ae_yn-adverse_events_manag_v_33
 // Save a version in long format
 preserve
 sort record_id
 save "OutputData\ae_long0.dta", replace
 restore
 // Reshape the data
-reshape wide ae_yn-adverse_events_manag_v_29, i(record_id) j(redcap_repeat_instance)
+reshape wide ae_yn-adverse_events_manag_v_33, i(record_id) j(redcap_repeat_instance)
 gen ae_indata=1
 sort record_id	
 save "OutputData\ae0.dta", replace
@@ -126,8 +126,8 @@ keep if ( redcap_event_name == "reporting_pds_arm_1" & redcap_repeat_instrument=
 keep if ( pdf_yn~=. )
 tab redcap_event_name pdf_yn, m
 // Keep variables
-describe record_id redcap_event_name pdf_yn-protocol_deviations__v_27, full
-keep record_id redcap_event_name pdf_yn-protocol_deviations__v_27
+describe record_id redcap_event_name pdf_yn-protocol_deviations__v_32, full
+keep record_id redcap_event_name pdf_yn-protocol_deviations__v_32
 /* Keep this commented out, but uncomment if there are repeating PDs
 // Save a version in long format
 preserve
@@ -139,6 +139,20 @@ reshape wide pd_yn-protocol_deviations__v_27, i(record_id) j(redcap_repeat_insta
 gen pd_indata=1
 sort record_id
 save "OutputData\pd0.dta", replace
+/// Keep event: follow_up_arm_1 - 6 month follow-up
+use "OutputData\respond0.dta", clear
+tab redcap_event_name fu_6m_completed, m
+tab redcap_event_name fu_6m_completed
+keep if ( redcap_event_name == "follow_up_arm_1" & redcap_repeat_instrument=="" )
+keep if ( fu_6m_completed~=. )
+tab redcap_event_name fu_6m_completed, m
+tab redcap_event_name fu_6m_completed
+// Keep variables
+describe record_id redcap_event_name fu_6m_completed-follow_up_6_month_complete, full
+keep record_id redcap_event_name fu_6m_completed-follow_up_6_month_complete
+gen fup_6m_indata=1
+sort record_id
+save "OutputData\fu_6m0.dta", replace
 /// Merge all the files together
 use "OutputData\ed_scn0.dta", clear
 merge 1:1 record_id using "OutputData\ed_24h0.dta"
@@ -154,6 +168,8 @@ drop _merge
 merge 1:1 record_id using "OutputData\ae0.dta"
 drop _merge
 merge 1:1 record_id using "OutputData\pd0.dta"
+drop _merge
+merge 1:1 record_id using "OutputData\fu_6m0.dta"
 drop _merge
 save "RESPOND.dta", replace
 /// Merge the ED randomisation group onto the adverse events long format file
@@ -258,7 +274,7 @@ gen rand_ino_firstday=1 if t_diff_rand_ino_min<240 & t_diff_rand_ino_min>=0 & ~m
 replace rand_ino_firstday=0 if t_diff_rand_ino_min>=1440 & ~missing(t_diff_rand_ino_min)
 replace rand_ino_firstday=0 if missing(inotrope_commencement_dt)
 
-// Total amount in fluids received
+// Total amount of fluids received
 // - during the first 60minutes
 gen ed_obs_fluid_firsthr = ed_obs_fluid_bolus_total1+ed_obs_fluid_bolus_total2+ed_obs_fluid_bolus_total3
 // - 61-240min
@@ -271,7 +287,7 @@ gen ed_obs_fluid_61_240min = ed_obs_fluid_bolus_total4+ed_obs_fluid_bolus_total5
 gen ed_obs_fluid_4_12hr = ed_obs_fluid_bolus_total13+ed_obs_fluid_bolus_total14
 // - first 24 hours
 gen ed_obs_fluid_24hr=ed_obs_fluid_firsthr+ed_obs_fluid_61_240min+ed_obs_fluid_4_12hr+ed_obs_fluid_bolus_total15
-local ed_fluids_recvd "ed_obs_fluid_firsthr ed_obs_fluid_61_240min ed_obs_fluid_4_12hr ed_obs_fluid_bolus_total15 ed_obs_fluid_24hr"
+local ed_fluids_recvd "ed_obs_fluid_firsthr ed_obs_fluid_61_240min ed_obs_fluid_4_12hr ed_obs_fluid_24hr ed_obs_fluid_bolus_total1 ed_obs_fluid_bolus_total2 ed_obs_fluid_bolus_total3 ed_obs_fluid_bolus_total4 ed_obs_fluid_bolus_total5 ed_obs_fluid_bolus_total6 ed_obs_fluid_bolus_total7 ed_obs_fluid_bolus_total8 ed_obs_fluid_bolus_total9 ed_obs_fluid_bolus_total10 ed_obs_fluid_bolus_total11 ed_obs_fluid_bolus_total12 ed_obs_fluid_bolus_total13 ed_obs_fluid_bolus_total14 ed_obs_fluid_bolus_total15"
 foreach v in `ed_fluids_recvd' {	
 	// per kg
 	gen `v'_kg=`v'/dem_weight
@@ -284,6 +300,8 @@ gen organ_dys_psofa_any=0
 gen organ_dys_psofa_days=0
 gen mo_dys_psofa_any=0
 gen mo_dys_psofa_days=0
+gen aki_any=0
+gen aki_days=0
 foreach i of numlist 1/28 {
 
 	// PELOD-2
@@ -301,11 +319,22 @@ foreach i of numlist 1/28 {
 	replace mo_dys_psofa_any=1 if dod_psofa_mo_comb_`i'==1 & `i'<8
 	replace mo_dys_psofa_days=mo_dys_psofa_days+1 if dod_psofa_mo_comb_`i'==1 & organ_dys_psofa_`i'~=. & `i'<8
 	
+	// AKI
+	tab icu_aki_`i', m
+	gen aki_day_`i'=1 if icu_aki_`i' | dod_rrt`i'==1
+	replace aki_any=1 if aki_day_`i'==1
+	replace aki_days=aki_days+1 if aki_day_`i'==1
+	
+	
 }
 
 // Survival free of organ dysfunction at 28 days - using pSOFA
 gen organ_dys_psofa_any_death=28-organ_dys_psofa_days if organ_dys_psofa_days~=.
 replace organ_dys_psofa_any_death=0 if out_28d_status==0
+
+// Survival free of AKI at 28 days
+gen surv_free_aki_28=28-aki_days if aki_days~=.
+replace surv_free_aki_28=0 if out_28d_status==0
 
 // Duration of inotropes (ED and ICU)
 gen ed_rand_plus7day=ed_scn_rand_dt+7*24*60*60*1000
@@ -549,24 +578,24 @@ replace icu_lactate2_first24=1 if icu_obs_lactate4<2 & ~missing(icu_obs_lactate4
 
 // Time to reversal of tachycardia censored at 24hours    
 foreach i of numlist 1/4 {
-gen icu_tc`i'=0 if icu_obs_hr`i'~=.
-replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=0 & (dem_picu_rand_age_days/365.25)<2) & icu_obs_hr`i'>180 & icu_obs_hr`i'~=.
-replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=2 & (dem_picu_rand_age_days/365.25)<6) & icu_obs_hr`i'>140 & icu_obs_hr`i'~=.
-replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=6 & (dem_picu_rand_age_days/365.25)<13) & icu_obs_hr`i'>130 & icu_obs_hr`i'~=.
-replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=13 & (dem_picu_rand_age_days/365.25)<18) & icu_obs_hr`i'>110 & icu_obs_hr`i'~=.  
+	gen icu_tc`i'=0 if icu_obs_hr`i'~=.
+	replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=0 & (dem_picu_rand_age_days/365.25)<2) & icu_obs_hr`i'>180 & icu_obs_hr`i'~=.
+	replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=2 & (dem_picu_rand_age_days/365.25)<6) & icu_obs_hr`i'>140 & icu_obs_hr`i'~=.
+	replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=6 & (dem_picu_rand_age_days/365.25)<13) & icu_obs_hr`i'>130 & icu_obs_hr`i'~=.
+	replace icu_tc`i'=1 if ((dem_picu_rand_age_days/365.25)>=13 & (dem_picu_rand_age_days/365.25)<18) & icu_obs_hr`i'>110 & icu_obs_hr`i'~=.  
 }
 
 foreach i of numlist 1/4 {
-gen double icu_tc_dt`i'= icu_obs_dt`i' if icu_tc`i'==1
-format icu_tc_dt`i' %tc
+	gen double icu_tc_dt`i'= icu_obs_dt`i' if icu_tc`i'==1
+	format icu_tc_dt`i' %tc
 }
 
 egen double icu_tc_dt_first = rowmin(icu_tc_dt1 icu_tc_dt2 icu_tc_dt3 icu_tc_dt4)
 format icu_tc_dt_first`i' %tc
 
 foreach i of numlist 1/4 {
-gen double icu_normalhr_dt`i'= icu_obs_dt`i' if icu_tc`i'==0 & icu_obs_dt`i'>icu_tc_dt_first
-format icu_normalhr_dt`i' %tc
+	gen double icu_normalhr_dt`i'= icu_obs_dt`i' if icu_tc`i'==0 & icu_obs_dt`i'>icu_tc_dt_first
+	format icu_normalhr_dt`i' %tc
 }
 
 egen double icu_normalhr_dt_first = rowmin(icu_normalhr_dt1 icu_normalhr_dt2 icu_normalhr_dt3 icu_normalhr_dt4)
@@ -602,8 +631,20 @@ egen icu_inotrope_start_dt=rowmin(out_vaso_dt_start_*)
 format icu_inotrope_start_dt %tCMonth_dd,_CCYY_HH:MM
 gen t_diff_icu_inotrope_min=hours(icu_inotrope_start_dt-icu_scn_rand_dt)*60
 
-// Change in mPOPC and FSS from baseline to 28 days (ED and ICU)
+// Change in POPC and FSS from baseline to 28 days (ED and ICU)
 gen out_mpopc_change=out_28d_popc-dem_popc_pre_hosp if ~missing(out_28d_popc) & ~missing(dem_popc_pre_hosp)
 gen out_fss_change=out_28d_fss_score-dem_fss_score if ~missing(out_28d_fss_score) & ~missing(dem_fss_score)
+
+// Variable to separate PICU group into three groups (standard care no hydrocort, standard care hydrocort, intervention)
+gen icu_scn_rand_3gp=icu_scn_rand_group
+replace icu_scn_rand_3gp=3 if icu_scn_rand_group==2
+replace icu_scn_rand_3gp=2 if icu_trt_hydro_yn==1 & icu_scn_rand_group==1
+label define icu_scn_rand_3gp 1 "Std: no hydrocort" 2 "Std: hydrocort" 3 "Intervention"
+label values icu_scn_rand_3gp icu_scn_rand_3gp
+
+// Variable to define subgroup analysis - pSOFA at ICU randomisation >=2 for lung component
+gen subgroup_acutelung=0
+replace subgroup_acutelung=1 if icu_bl_pao2_fio2_ps_pts>=2 & ~missing(icu_bl_pao2_fio2_ps_pts)
+replace subgroup_acutelung=1 if missing(icu_bl_pao2_fio2_ps_pts) & ~missing(icu_bl_spo2_fio2_ps_pts) & icu_bl_spo2_fio2_ps_pts>=2
 
 save "RESPOND.dta", replace

@@ -126,7 +126,7 @@ foreach v of varlist `chronic_other' {
 	tab `v' icu_scn_rand_group, col
 }
 
-// mPOPC
+// POPC
 hist dem_popc_pre_hosp
 tabstat dem_popc_pre_hosp, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
 
@@ -207,58 +207,72 @@ tab icu_bl_ecls icu_scn_rand_group, col
 
 /*** Table 2: Feasibility outcomes ***/
 
-// Time from screening to randomisation
-hist t_diff_icu_scn_rand_min
-tabstat t_diff_icu_scn_rand_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
-capture noisily qreg t_diff_icu_scn_rand_min icu_scn_rand_group
+/* Run this table three times - all sites, QCH only, all sites apart from QCH */
+gen allsites=1
+gen qch_only=1 if redcap_data_access_group=="qch"
+gen not_qch=1 if qch_only==.
 
-// Time from PICU admission to randomisation
-hist t_diff_icu_adm_rand_min
-tabstat t_diff_icu_adm_rand_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
-capture noisily qreg t_diff_icu_adm_rand_min icu_scn_rand_group
+foreach v of varlist allsites qch_only not_qch {
 
-// Time from randomisation to commencement of metabolic resuscitation
-hist t_rand_metab_resusc_min
-tabstat t_rand_metab_resusc_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
-capture noisily qreg t_rand_metab_resusc_min icu_scn_rand_group
+	preserve
+	keep if `v'==1
 
-// Hydrocortisone after randomisation
-tab icu_trt_hydro_yn icu_scn_rand_group, m col
-tab icu_trt_hydro_yn icu_scn_rand_group, col
-capture noisily prtest icu_trt_hydro_yn, by(icu_scn_rand_group)
+	// Time from screening to randomisation
+	hist t_diff_icu_scn_rand_min
+	tabstat t_diff_icu_scn_rand_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+	capture noisily qreg t_diff_icu_scn_rand_min icu_scn_rand_group
 
-// Cumulative hydrocortisone dose after randomisation
-hist icu_trt_hydro_total_kg
-tabstat icu_trt_hydro_total_kg, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
-capture noisily qreg icu_trt_hydro_total_kg icu_scn_rand_group
+	// Time from PICU admission to randomisation
+	hist t_diff_icu_adm_rand_min
+	tabstat t_diff_icu_adm_rand_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+	capture noisily qreg t_diff_icu_adm_rand_min icu_scn_rand_group
 
-// Ascorbic acid after randomisation
-tab icu_trt_vitc_yn icu_scn_rand_group, m col
-tab icu_trt_vitc_yn icu_scn_rand_group, col
-capture noisily prtest icu_trt_vitc_yn, by(icu_scn_rand_group)
+	// Time from randomisation to commencement of metabolic resuscitation
+	hist t_rand_metab_resusc_min
+	tabstat t_rand_metab_resusc_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+	capture noisily qreg t_rand_metab_resusc_min icu_scn_rand_group
 
-// Cumulative hydrocortisone dose after randomisation
-hist icu_trt_vitc_total_kg
-tabstat icu_trt_vitc_total_kg, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
-capture noisily qreg icu_trt_vitc_total_kg icu_scn_rand_group
+	// Hydrocortisone after randomisation
+	tab icu_trt_hydro_yn icu_scn_rand_group, m col
+	tab icu_trt_hydro_yn icu_scn_rand_group, col
+	capture noisily prtest icu_trt_hydro_yn, by(icu_scn_rand_group)
 
-// Thiamine received after randomisation
-tab icu_trt_thia_yn icu_scn_rand_group, m col
-tab icu_trt_thia_yn icu_scn_rand_group, col
-capture noisily prtest icu_trt_thia_yn, by(icu_scn_rand_group) 
+	// Cumulative hydrocortisone dose after randomisation
+	hist icu_trt_hydro_total_kg
+	tabstat icu_trt_hydro_total_kg, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+	capture noisily qreg icu_trt_hydro_total_kg icu_scn_rand_group
 
-// Cumulative thiamine dose after randomisation
-hist icu_trt_thia_total_kg
-tabstat icu_trt_thia_total_kg, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
-capture noisily qreg icu_trt_thia_total_kg icu_scn_rand_group
+	// Ascorbic acid after randomisation
+	tab icu_trt_vitc_yn icu_scn_rand_group, m col
+	tab icu_trt_vitc_yn icu_scn_rand_group, col
+	capture noisily prtest icu_trt_vitc_yn, by(icu_scn_rand_group)
 
-// Time from randomisation to inotrope infusion commencement
-hist t_diff_icu_inotrope_min
-tabstat t_diff_icu_inotrope_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+	// Cumulative hydrocortisone dose after randomisation
+	hist icu_trt_vitc_total_kg
+	tabstat icu_trt_vitc_total_kg, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+	capture noisily qreg icu_trt_vitc_total_kg icu_scn_rand_group
 
-// Metabolic resuscitation started within first hour of randomisation
-tab metab_resusc icu_scn_rand_group, m col
-tab metab_resusc icu_scn_rand_group, col
+	// Thiamine received after randomisation
+	tab icu_trt_thia_yn icu_scn_rand_group, m col
+	tab icu_trt_thia_yn icu_scn_rand_group, col
+	capture noisily prtest icu_trt_thia_yn, by(icu_scn_rand_group) 
+
+	// Cumulative thiamine dose after randomisation
+	hist icu_trt_thia_total_kg
+	tabstat icu_trt_thia_total_kg, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+	capture noisily qreg icu_trt_thia_total_kg icu_scn_rand_group
+
+	// Time from randomisation to inotrope infusion commencement
+	hist t_diff_icu_inotrope_min
+	tabstat t_diff_icu_inotrope_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+	// Metabolic resuscitation started within first hour of randomisation
+	tab metab_resusc icu_scn_rand_group, m col
+	tab metab_resusc icu_scn_rand_group, col
+
+	restore
+
+}
 
 /*** Table 3: Outcomes ***/
 
@@ -281,6 +295,13 @@ capture noisily qreg mo_dys_psofa_any_death_7day icu_scn_rand_group
 stset mo_dys_psofa_any_death_7day
 sts graph, by(icu_scn_rand_group)
 
+// Survival free of AKI (censored at 28 days)
+tabstat surv_free_aki_28, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+hist surv_free_aki_28
+capture noisily qreg surv_free_aki_28 icu_scn_rand_group
+stset surv_free_aki_28
+sts graph, by(icu_scn_rand_group)
+
 // Death at 28 days
 tab out_28d_status icu_scn_rand_group, m col
 tab out_28d_status icu_scn_rand_group, col
@@ -301,7 +322,7 @@ hist hosp_los_ed
 tabstat hosp_los_ed, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
 capture noisily qreg hosp_los_ed icu_scn_rand_group
 
-// 28 day mPOPC
+// 28 day POPC
 tab out_28d_popc icu_scn_rand_group, m col
 tab out_28d_popc icu_scn_rand_group, col
 tabstat out_28d_popc, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
@@ -414,7 +435,7 @@ hist hosp_los_ed
 tabstat hosp_los_ed, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
 capture noisily qreg hosp_los_ed icu_scn_rand_3gp
 
-// 28 day mPOPC
+// 28 day POPC
 tab out_28d_popc icu_scn_rand_3gp, m col
 tab out_28d_popc icu_scn_rand_3gp, col
 tabstat out_28d_popc, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
@@ -447,6 +468,81 @@ tabstat icu_t_diff_normalhr_rand, by(icu_scn_rand_3gp) stats(n mean sd min max q
 // Time to shock reversal censored at 28 days
 hist icu_t_diff_inoend_rand_min
 tabstat icu_t_diff_inoend_rand_min, by(icu_scn_rand_3gp) stats(n mean sd min max q iqr)
+
+/*** Sensivity Analysis: Table 4 - Outcomes - only patients with septic shock and pSOFA lung component >=2 ***/
+preserve
+
+tab subgroup_acutelung
+keep if subgroup_acutelung==1
+
+// Survival free of organ dysfunction (censored at 28 days) - using pSOFA
+tabstat organ_dys_psofa_any_death, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+hist organ_dys_psofa_any_death
+stset organ_dys_psofa_any_death
+sts graph, by(icu_scn_rand_group)
+
+// Survival free of inotrope support at 7 days
+hist icu_inotropefree_day7_days
+tabstat icu_inotropefree_day7_days, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+// Survival free of multiorgan dysfunction at 7 days - using pSOFA
+tabstat mo_dys_psofa_any_death_7day, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+hist mo_dys_psofa_any_death_7day
+stset mo_dys_psofa_any_death_7day
+sts graph, by(icu_scn_rand_group)
+
+// Death at 28 days
+tab out_28d_status icu_scn_rand_group, m col
+tab out_28d_status icu_scn_rand_group, col
+
+// Survival free of PICU stay (censored at 28 days)
+hist picu_free_surv
+tabstat picu_free_surv, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+// PICU length of stay
+hist icu_los
+tabstat icu_los, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+// Hospital length of stay
+hist hosp_los_ed
+tabstat hosp_los_ed, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+capture noisily qreg hosp_los_ed icu_scn_rand_group
+
+// 28 day POPC
+tab out_28d_popc icu_scn_rand_group, m col
+tab out_28d_popc icu_scn_rand_group, col
+tabstat out_28d_popc, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+tab out_mpopc_change icu_scn_rand_group, m col
+tab out_mpopc_change icu_scn_rand_group, col
+tabstat out_mpopc_change, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+// FSS
+hist out_28d_fss_score
+tabstat out_28d_fss_score, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+hist out_fss_change
+tabstat out_fss_change, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+// Lactate <2mmol/L by six hours post enrolment
+tab icu_lactate2_first6 icu_scn_rand_group, m col
+tab icu_lactate2_first6 icu_scn_rand_group, col
+
+// Lactate <2mmol/L by 12 hours post enrolment
+tab icu_lactate2_first12 icu_scn_rand_group, m col
+tab icu_lactate2_first12 icu_scn_rand_group, col
+
+// Lactate <2mmol/L by 24 hours post enrolment
+tab icu_lactate2_first24 icu_scn_rand_group, m col
+tab icu_lactate2_first24 icu_scn_rand_group, col
+
+// Time to reversal of tachycardia censored at 24 hours
+hist icu_t_diff_normalhr_rand
+tabstat icu_t_diff_normalhr_rand, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+// Time to shock reversal censored at 28 days
+hist icu_t_diff_inoend_rand_min
+tabstat icu_t_diff_inoend_rand_min, by(icu_scn_rand_group) stats(n mean sd min max q iqr)
+
+restore
 
 /* Figures */
 

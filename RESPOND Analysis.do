@@ -1,9 +1,9 @@
 /// RESPOND
 
-log using "210201_RESPOND Analysis.txt", text replace
+log using "210401_RESPOND Analysis.txt", text replace
 
 /* Run the do file from REDCap */
-do "RESPOND_STATA_2020-12-02_0736.do"
+do "RESPOND_STATA_2021-02-22_0636.do"
 
 /* Run the data transformation file */
 do "RESPOND Data Transformation.do"

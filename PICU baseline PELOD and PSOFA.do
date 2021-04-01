@@ -182,3 +182,33 @@ egen icu_bl_psofa_spo2= rowtotal(icu_bl_gcs_ps_pts icu_bl_map_ps_pts icu_bl_crea
 gen icu_bl_psofa_comb=icu_bl_psofa_pao2 if icu_bl_pao2~=. & icu_bl_bga_fio2~=.
 replace icu_bl_psofa_comb=icu_bl_psofa_spo2 if icu_bl_pao2==.
 
+/****** AKI ******/
+
+/* Stage 1: x1.5-<2.0 increase from baseline
+   Stage 2: x2.0-<3.0 increase from baseline
+   Stage 3: x>=3.0 increase from baseline
+   Baseline assumed as 'normal' criteria from PELOD-2 syntax */
+   
+/// Baseline in PICU
+// Stage 1
+gen icu_aki0=0
+replace icu_aki0=1 if icu_bl_creatinine>=(70*1.5) & icu_bl_creatinine<(70*2) & dem_picu_rand_age_days/(365.25/12)<1 & dem_picu_rand_age_days~=.
+replace icu_aki0=1 if icu_bl_creatinine>=(23*1.5) & icu_bl_creatinine<(23*2) & dem_picu_rand_age_days/(365.25/12)>=1 & dem_picu_rand_age_days/(365.25/12)<12 & dem_picu_rand_age_days~=.
+replace icu_aki0=1 if icu_bl_creatinine>=(35*1.5) & icu_bl_creatinine<(35*2) & dem_picu_rand_age_days/(365.25/12)>=12 & dem_picu_rand_age_days/(365.25/12)<24 & dem_picu_rand_age_days~=.
+replace icu_aki0=1 if icu_bl_creatinine>=(51*1.5) & icu_bl_creatinine<(51*2) & dem_picu_rand_age_days/(365.25/12)>=24 & dem_picu_rand_age_days/(365.25/12)<60 & dem_picu_rand_age_days~=.
+replace icu_aki0=1 if icu_bl_creatinine>=(59*1.5) & icu_bl_creatinine<(59*2) & dem_picu_rand_age_days/(365.25/12)>=60 & dem_picu_rand_age_days/(365.25/12)<144 & dem_picu_rand_age_days~=.
+replace icu_aki0=1 if icu_bl_creatinine>=(93*1.5) & icu_bl_creatinine<(93*2) & dem_picu_rand_age_days/(365.25/12)>=144 & dem_picu_rand_age_days~=.
+// Stage 2
+replace icu_aki0=2 if icu_bl_creatinine>=(70*2) & icu_bl_creatinine<(70*3) & dem_picu_rand_age_days/(365.25/12)<1 & dem_picu_rand_age_days~=.
+replace icu_aki0=2 if icu_bl_creatinine>=(23*2) & icu_bl_creatinine<(23*3) & dem_picu_rand_age_days/(365.25/12)>=1 & dem_picu_rand_age_days/(365.25/12)<12 & dem_picu_rand_age_days~=.
+replace icu_aki0=2 if icu_bl_creatinine>=(35*2) & icu_bl_creatinine<(35*3) & dem_picu_rand_age_days/(365.25/12)>=12 & dem_picu_rand_age_days/(365.25/12)<24 & dem_picu_rand_age_days~=.
+replace icu_aki0=2 if icu_bl_creatinine>=(51*2) & icu_bl_creatinine<(51*3) & dem_picu_rand_age_days/(365.25/12)>=24 & dem_picu_rand_age_days/(365.25/12)<60 & dem_picu_rand_age_days~=.
+replace icu_aki0=2 if icu_bl_creatinine>=(59*2) & icu_bl_creatinine<(59*3) & dem_picu_rand_age_days/(365.25/12)>=60 & dem_picu_rand_age_days/(365.25/12)<144 & dem_picu_rand_age_days~=.
+replace icu_aki0=2 if icu_bl_creatinine>=(93*2) & icu_bl_creatinine<(93*3) & dem_picu_rand_age_days/(365.25/12)>=144 & dem_picu_rand_age_days~=.
+// Stage 3
+replace icu_aki0=3 if icu_bl_creatinine>=(70*3) & icu_bl_creatinine~=. & dem_picu_rand_age_days/(365.25/12)<1 & dem_picu_rand_age_days~=.
+replace icu_aki0=3 if icu_bl_creatinine>=(23*3) & icu_bl_creatinine~=. & dem_picu_rand_age_days/(365.25/12)>=1 & dem_picu_rand_age_days/(365.25/12)<12 & dem_picu_rand_age_days~=.
+replace icu_aki0=3 if icu_bl_creatinine>=(35*3) & icu_bl_creatinine~=. & dem_picu_rand_age_days/(365.25/12)>=12 & dem_picu_rand_age_days/(365.25/12)<24 & dem_picu_rand_age_days~=.
+replace icu_aki0=3 if icu_bl_creatinine>=(51*3) & icu_bl_creatinine~=. & dem_picu_rand_age_days/(365.25/12)>=24 & dem_picu_rand_age_days/(365.25/12)<60 & dem_picu_rand_age_days~=.
+replace icu_aki0=3 if icu_bl_creatinine>=(59*3) & icu_bl_creatinine~=. & dem_picu_rand_age_days/(365.25/12)>=60 & dem_picu_rand_age_days/(365.25/12)<144 & dem_picu_rand_age_days~=.
+replace icu_aki0=3 if icu_bl_creatinine>=(93*3) & icu_bl_creatinine~=. & dem_picu_rand_age_days/(365.25/12)>=144 & dem_picu_rand_age_days~=.

@@ -199,3 +199,33 @@ replace dod_psofa_mo_comb_count_`i'=dod_psofa_mo_comb_count_`i'+1 if dod_pao2`i'
 gen dod_psofa_mo_comb_`i'=1 if dod_psofa_mo_comb_count_`i'~=. & dod_psofa_mo_comb_count_`i'>=2
 
 }
+
+/**** AKI Syntax ****/
+
+
+forvalues i=1/28 {
+	// Stage 1
+	gen icu_aki_`i'=0
+	replace icu_aki_`i'=1 if dod_creatinine`i'>=(70*1.5) & dod_creatinine`i'<(70*2) & dem_picu_rand_age_days/(365.25/12)<1 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=1 if dod_creatinine`i'>=(23*1.5) & dod_creatinine`i'<(23*2) & dem_picu_rand_age_days/(365.25/12)>=1 & dem_picu_rand_age_days/(365.25/12)<12 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=1 if dod_creatinine`i'>=(35*1.5) & dod_creatinine`i'<(35*2) & dem_picu_rand_age_days/(365.25/12)>=12 & dem_picu_rand_age_days/(365.25/12)<24 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=1 if dod_creatinine`i'>=(51*1.5) & dod_creatinine`i'<(51*2) & dem_picu_rand_age_days/(365.25/12)>=24 & dem_picu_rand_age_days/(365.25/12)<60 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=1 if dod_creatinine`i'>=(59*1.5) & dod_creatinine`i'<(59*2) & dem_picu_rand_age_days/(365.25/12)>=60 & dem_picu_rand_age_days/(365.25/12)<144 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=1 if dod_creatinine`i'>=(93*1.5) & dod_creatinine`i'<(93*2) & dem_picu_rand_age_days/(365.25/12)>=144 & dem_picu_rand_age_days~=.
+	
+	// Stage 2
+	replace icu_aki_`i'=2 if dod_creatinine`i'>=(70*2) & dod_creatinine`i'<(70*3) & dem_picu_rand_age_days/(365.25/12)<1 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=2 if dod_creatinine`i'>=(23*2) & dod_creatinine`i'<(23*3) & dem_picu_rand_age_days/(365.25/12)>=1 & dem_picu_rand_age_days/(365.25/12)<12 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=2 if dod_creatinine`i'>=(35*2) & dod_creatinine`i'<(35*3) & dem_picu_rand_age_days/(365.25/12)>=12 & dem_picu_rand_age_days/(365.25/12)<24 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=2 if dod_creatinine`i'>=(51*2) & dod_creatinine`i'<(51*3) & dem_picu_rand_age_days/(365.25/12)>=24 & dem_picu_rand_age_days/(365.25/12)<60 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=2 if dod_creatinine`i'>=(59*2) & dod_creatinine`i'<(59*3) & dem_picu_rand_age_days/(365.25/12)>=60 & dem_picu_rand_age_days/(365.25/12)<144 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=2 if dod_creatinine`i'>=(93*2) & dod_creatinine`i'<(93*3) & dem_picu_rand_age_days/(365.25/12)>=144 & dem_picu_rand_age_days~=.
+	
+	// Stage 3
+	replace icu_aki_`i'=3 if dod_creatinine`i'>=(70*3) & dod_creatinine`i'~=. & dem_picu_rand_age_days/(365.25/12)<1 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=3 if dod_creatinine`i'>=(23*3) & dod_creatinine`i'~=. & dem_picu_rand_age_days/(365.25/12)>=1 & dem_picu_rand_age_days/(365.25/12)<12 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=3 if dod_creatinine`i'>=(35*3) & dod_creatinine`i'~=. & dem_picu_rand_age_days/(365.25/12)>=12 & dem_picu_rand_age_days/(365.25/12)<24 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=3 if dod_creatinine`i'>=(51*3) & dod_creatinine`i'~=. & dem_picu_rand_age_days/(365.25/12)>=24 & dem_picu_rand_age_days/(365.25/12)<60 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=3 if dod_creatinine`i'>=(59*3) & dod_creatinine`i'~=. & dem_picu_rand_age_days/(365.25/12)>=60 & dem_picu_rand_age_days/(365.25/12)<144 & dem_picu_rand_age_days~=.
+	replace icu_aki_`i'=3 if dod_creatinine`i'>=(93*3) & dod_creatinine`i'~=. & dem_picu_rand_age_days/(365.25/12)>=144 & dem_picu_rand_age_days~=.
+}

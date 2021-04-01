@@ -396,7 +396,7 @@ label values timepoint timepoint
 
 // Heart rate
 graph box ed_obs_hr if ed_obs_hr<4444, over(ed_scn_rand_group, label(nolabel)) over(timepoint, label(labsize(small) angle(vertical))) ///
-	  graphr(color(white)) plotr(lcolor(black)) box(1,color(black)) box(2,color(red)) ///
+	  graphr(color(white)) plotr(lcolor(black)) box(1,color(black)) box(2,color(red) ///
 	  fcolor(gs8)) marker(1, msize(small) mfcolor(black) mlcolor(black)) ///
 	  ytitle("Heart Rate (beats per minute)") ylabel(, glpattern(dash) glcolor(gs14)) ///
 	  caption("Timepoint", position(6))
